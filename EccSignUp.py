@@ -12,13 +12,13 @@ df = pd.read_csv(inputFile)
 # Remove null/garbage rows
 df = df[df['First Name'].notna()]
 df = df[df['Last Name'].notna()]
-#Insert default values/remove nulls.
+# Insert default values/remove nulls.
 df['Number Sitting Together (besides yourself)'] = df['Number Sitting Together (besides yourself)'].fillna(0)
 
 # Get only ECC information for shacharit and kabalast shabbat (kab)
 df = ps.sqldf("SELECT * FROM  df WHERE df.Item LIKE '%ECC%' AND (df.Item LIKE '%Shacharit%' OR df.Item LIKE '%Kab%')")
 
-# Create utiliy columns
+# Create utility columns
 df["Display Name"] = df["First Name"] + " " + df["Last Name"]
 df["Seats"] = df['Number Sitting Together (besides yourself)'] + 1
 
@@ -26,7 +26,7 @@ df["Seats"] = df['Number Sitting Together (besides yourself)'] + 1
 df = ps.sqldf("SELECT DISTINCT * FROM df")
 
 # create relevant dataframes.
-fridayNight = ps.sqldf("SELECT DISTINCT df.'Display Name' FROM  df WHERE df.Item LIKE '%Kab%' AND df.'Sign Up' LIKE '%Men%' ORDER BY UPPER(df.'Last Name') ASC")
+fridayNight = ps.sqldf("SELECT DISTINCT df.'Display Name' FROM  df WHERE df.Item LIKE '%Kab%' AND df.'Sign Up' NOT LIKE '%Women%' ORDER BY UPPER(df.'Last Name') ASC")
 
 saturdayMen = ps.sqldf("SELECT DISTINCT df.'Display Name' FROM  df WHERE df.Item LIKE '%Shacharit%' AND df.'Sign Up' NOT LIKE '%Women%' ORDER BY UPPER(df.'Last Name') ASC")
 
@@ -37,14 +37,14 @@ WomenCounts = ps.sqldf("SELECT df.Seats, count(*) as cnt FROM df WHERE df.Item L
 
 
 # Men groups with >= 4 people in the pod
-BigMen = ps.sqldf("SELECT DISTINCT df.'Display Name', df.Seats FROM df WHERE df.Seats >= 4 AND df.'Sign Up' NOT LIKE 'Women'")
+BigMen = ps.sqldf("SELECT DISTINCT df.'Display Name', df.Seats FROM df WHERE df.Seats >= 4 AND df.'Sign Up' NOT LIKE '%Women%'")
 # Women groups with >= 4 people in the pod
-BigWomen = ps.sqldf("SELECT DISTINCT df.'Display Name', df.Seats FROM df WHERE df.Seats >= 4 AND df.'Sign Up' LIKE 'Women'")
+BigWomen = ps.sqldf("SELECT DISTINCT df.'Display Name', df.Seats FROM df WHERE df.Seats >= 4 AND df.'Sign Up' LIKE '%Women%'")
 
 # How many pods for both men and women. Yes, I used a UNION. Shut up.
 totalPods = ps.sqldf("SELECT 'Women' as 'Gender', SUM(wc.cnt) as 'Count' FROM WomenCounts AS wc UNION SELECT 'Men', SUM(mc.cnt) FROM MenCounts AS mc")
 
-#Write to excel file. I found this code on the Internet. How it works, I don't really know. Yeah me!
+# Write to excel file. I found this code on the Internet. How it works, I don't really know. Yeah me!
 writer = pd.ExcelWriter(outputFile, engine='xlsxwriter')
 
 fridayNight.to_excel(writer, sheet_name='Friday Night')
