@@ -1,5 +1,7 @@
 # DEPRECATED
 
+## No longer needed as there is no more sign ups for minyanim at the ECC.
+
 # What is this?
 
 Script for the signup system at the YIWH ECC Minyan.
