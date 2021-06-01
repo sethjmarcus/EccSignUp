@@ -1,3 +1,5 @@
+# DEPRECATED
+
 # What is this?
 
 Script for the signup system at the YIWH ECC Minyan.
